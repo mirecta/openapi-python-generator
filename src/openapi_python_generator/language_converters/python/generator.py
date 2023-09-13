@@ -21,6 +21,7 @@ def generator(
     library_config: LibraryConfig,
     env_token_name: Optional[str] = None,
     use_orjson: bool = False,
+    http_auth: Optional[str] = None,
 ) -> ConversionResult:
     """
     Generate Python code from an OpenAPI 3.0 specification.

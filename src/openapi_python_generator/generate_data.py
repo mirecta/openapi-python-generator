@@ -19,6 +19,7 @@ from .language_converters.python.generator import generator
 from .language_converters.python.jinja_config import JINJA_ENV
 from .language_converters.python.jinja_config import SERVICE_TEMPLATE
 from .models import ConversionResult
+import base64
 
 
 def write_code(path: Path, content) -> None:
@@ -43,7 +44,7 @@ def write_code(path: Path, content) -> None:
         raise e
 
 
-def get_open_api(source: Union[str, Path]) -> OpenAPI:
+def get_open_api(source: Union[str, Path], http_auth: Optional[str] = None) -> OpenAPI:
     """
     Tries to fetch the openapi.json file from the web or load from a local file. Returns the according OpenAPI object.
     :param source:
@@ -53,7 +54,9 @@ def get_open_api(source: Union[str, Path]) -> OpenAPI:
         if not isinstance(source, Path) and (
             source.startswith("http://") or source.startswith("https://")
         ):
-            return OpenAPI(**orjson.loads(httpx.get(source).text))
+            if http_auth:
+                headers = {'Authorization': f'Basic {base64.b64encode(http_auth.encode("ascii")).decode("ascii")}'}
+            return OpenAPI(**orjson.loads(httpx.get(source,headers=headers, verify=False).text))
 
         with open(source, "r") as f:
             return OpenAPI(**orjson.loads(f.read()))
@@ -137,13 +140,14 @@ def generate_data(
     library: Optional[HTTPLibrary] = HTTPLibrary.httpx,
     env_token_name: Optional[str] = None,
     use_orjson: bool = False,
+    http_auth: Optional[str] = None,
 ) -> None:
     """
     Generate Python code from an OpenAPI 3.0 specification.
     """
-    data = get_open_api(source)
+    data = get_open_api(source, http_auth)
     click.echo(f"Generating data from {source}")
 
-    result = generator(data, library_config_dict[library], env_token_name, use_orjson)
+    result = generator(data, library_config_dict[library], env_token_name, use_orjson, http_auth)
 
     write_data(result, output)

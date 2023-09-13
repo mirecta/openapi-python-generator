@@ -5,7 +5,7 @@ import click
 from openapi_python_generator import __version__
 from openapi_python_generator.common import HTTPLibrary
 from openapi_python_generator.generate_data import generate_data
-
+import base64
 
 @click.command()
 @click.argument("source")
@@ -32,12 +32,20 @@ from openapi_python_generator.generate_data import generate_data
     help="Use the orjson library to serialize the data. This is faster than the default json library and provides "
     "serialization of datetimes and other types that are not supported by the default json library.",
 )
+@click.option(
+    "--http-auth",
+    default=None,
+    show_default=False,
+    help="Http auth for access to api in format username:password"
+)
+
 @click.version_option(version=__version__)
 def main(
     source: str,
     output: str,
     library: Optional[HTTPLibrary] = HTTPLibrary.httpx,
     env_token_name: Optional[str] = None,
+    http_auth: Optional[str] = None,
     use_orjson: bool = False,
 ) -> None:
     """
@@ -46,7 +54,9 @@ def main(
     Provide a SOURCE (file or URL) containing the OpenAPI 3 specification and
     an OUTPUT path, where the resulting client is created.
     """
-    generate_data(source, output, library, env_token_name, use_orjson)
+    if http_auth:
+        print(f"If u use http auth as token u should use (Basic {base64.b64encode(http_auth.encode('ascii')).decode('ascii')})")
+    generate_data(source, output, library, env_token_name, use_orjson, http_auth)
 
 
 if __name__ == "__main__":  # pragma: no cover
