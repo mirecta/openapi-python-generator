@@ -28,6 +28,7 @@ with httpx.Client(base_url=base_path, verify=api_config.verify) as client:
         httpx.URL(path),
         headers=headers,
         params=query_params,
+        timeout=api_config.timeout,
         {% if body_param %}
         {% if use_orjson %}
         content=orjson.dumps({{ body_param }})
