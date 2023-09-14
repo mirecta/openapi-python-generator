@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
     headers = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Authorization': f'{ api_config.get_access_token() }',
+        'Authorization': f'{ api_config.access_token }',
         {{ header_params | join(',\n') | safe }}
     }
     query_params : Dict[str,Any] = {
